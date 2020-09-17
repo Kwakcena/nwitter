@@ -5,17 +5,14 @@ import { authService } from 'fbase';
 
 function App() {
   const [init, setInit] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(authService.currentUser);
+  const [userObj, setUserObj] = useState(null);
 
 
   useEffect(() => {
     // 유저가 로그인 했는지 안했는지 알 수 있다.
     authService.onAuthStateChanged((user) => {
       if(user) {
-        setIsLoggedIn(true);
-      }
-      else {
-        setIsLoggedIn(false);
+        setUserObj(user);
       }
       setInit(true);
     })
@@ -23,7 +20,7 @@ function App() {
 
   return (
     <>
-      {init ? <AppRouter isLoggedIn={isLoggedIn}/> : "Initializing..."}
+      {init ? <AppRouter isLoggedIn={Boolean(userObj)} userObj={userObj} /> : "Initializing..."}
       <footer>&copy; {new Date().getFullYear()} Nwitter</footer>
     </>
   );

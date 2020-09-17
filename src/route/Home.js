@@ -1,10 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { dbService } from 'fbase';
 
-const Home = () => {
+import Nweet from 'components/Nweet';
+
+const Home = ({ userObj }) => {
   const [nweet, setNweet] = useState('');
+  const [nweets, setNweets] = useState([]);
 
-  const onSubmit = (event) => {
+  useEffect(() => {
+    // onSnapshot은 nweets 데이터 베이스에 어떤 일이 발생했을 경우 발생.
+    dbService.collection('nweets').onSnapshot((snapshot) => {
+      const nweetArray = snapshot.docs.map(doc => ({
+        id:doc.id, 
+        ...doc.data(),
+      }));
+      setNweets(nweetArray);
+    })
+  }, [])
+
+  const onSubmit = async (event) => {
     event.preventDefault();
+    // nweets 라는 콜렉션에 데이터를 저장한다.
+    await dbService.collection('nweets').add({
+      text: nweet,
+      createAt: Date.now(),
+      creatorId: userObj.uid,
+    });
+    setNweet('');
   }
 
   const onChange = (event) => {
@@ -18,6 +40,7 @@ const Home = () => {
   }
 
   return (
+    <>
     <form onSubmit={onSubmit}>
       <input 
         type="text" 
@@ -31,6 +54,16 @@ const Home = () => {
         value="Nweet" 
       />
     </form>
+    <div>
+      {nweets.map(nweet => (
+        <Nweet 
+          key={nweet.id} 
+          nweetObj={nweet} 
+          isOwner={nweet.creatorId === userObj.uid}
+        />
+      ))}
+    </div>
+    </>
   )
 } 
 export default Home;
